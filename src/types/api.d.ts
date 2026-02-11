@@ -805,3 +805,100 @@ export interface ElectricityDataEntry {
   ts: number
   energy: ElectricityDataEnergy
 }
+
+// ============================================================================
+// SV2 Translator Proxy Types
+// ============================================================================
+
+export interface Sv2TranslatorUpstream {
+  address: string
+  port: number
+  authorityPubkey: string
+}
+
+export interface Sv2TranslatorDifficultyConfig {
+  minIndividualMinerHashrate?: number
+  sharesPerMinute?: number
+  enableVardiff?: boolean
+  jobKeepaliveIntervalSecs?: number
+}
+
+export interface Sv2TranslatorConfig {
+  deployment: {
+    image?: string
+    imageTag?: string
+    containerName?: string
+    restartPolicy?: string
+    hostDownstreamPort?: number
+    hostMonitoringPort?: number
+    pullPolicy?: 'ifNotPresent' | 'always' | 'never'
+  }
+  translator: {
+    downstreamAddress?: string
+    downstreamPort?: number
+    maxSupportedVersion?: number
+    minSupportedVersion?: number
+    downstreamExtranonce2Size?: number
+    userIdentity?: string
+    aggregateChannels?: boolean
+    supportedExtensions?: string[]
+    requiredExtensions?: string[]
+    monitoringAddress?: string
+    downstreamDifficultyConfig?: Sv2TranslatorDifficultyConfig
+    upstreams?: Sv2TranslatorUpstream[]
+  }
+}
+
+export interface Sv2TranslatorStatus {
+  running: boolean
+  state?: string
+  containerName?: string
+  containerId?: string
+  image?: string
+  ports?: {
+    downstream?: number
+    monitoring?: number
+  }
+  startedAt?: string
+  error?: string
+  config?: Sv2TranslatorConfig
+}
+
+export interface Sv2TranslatorLogsResponse {
+  logs: string
+  containerName?: string
+}
+
+export interface Sv2TranslatorStartResponse {
+  success: boolean
+  message?: string
+  containerId?: string
+  containerName?: string
+}
+
+export interface Sv2TranslatorStopResponse {
+  success: boolean
+  message?: string
+}
+
+// Pool with SV2 support
+export interface Sv2PoolConfig {
+  protocol: 'STRATUM_V1' | 'STRATUM_V2'
+  name: string
+  // SV1 endpoints (when protocol is STRATUM_V1)
+  endpoints?: Array<{
+    role: string
+    host: string
+    port: string | number
+  }>
+  // SV2 upstream config (when protocol is STRATUM_V2)
+  sv2Upstream?: Sv2TranslatorUpstream
+  // Translator settings (auto-enabled for SV2)
+  translatorEnabled?: boolean
+  translatorConfig?: Partial<Sv2TranslatorConfig['translator']>
+  // Common fields
+  credentialsTemplate?: {
+    workerName: string
+    suffixType: string
+  }
+}

@@ -148,6 +148,7 @@ export const api = createApi({
     'Settings',
     'ProductionCosts',
     'ContainerSettings',
+    'Sv2Translator',
   ],
   // Performance optimization: Better cache management
   keepUnusedDataFor: 300, // Keep data for 5 minutes (stable data)
@@ -1028,6 +1029,93 @@ export const api = createApi({
         maxRetries: 3,
       },
     }),
+
+    // =========================================================================
+    // SV2 Translator Proxy Endpoints
+    // =========================================================================
+
+    /**
+     * Get the current SV2 Translator Proxy status
+     * @returns {Object} Status including running state, ports, container info
+     */
+    getSv2TranslatorStatus: builder.query({
+      query: () => 'tproxy/status',
+      providesTags: ['Sv2Translator'],
+      extraOptions: {
+        maxRetries: 1,
+      },
+    }),
+
+    /**
+     * Get the current SV2 Translator Proxy configuration
+     * @returns {Object} Full translator configuration
+     */
+    getSv2TranslatorConfig: builder.query({
+      query: () => 'tproxy/config',
+      providesTags: ['Sv2Translator'],
+      extraOptions: {
+        maxRetries: 1,
+      },
+    }),
+
+    /**
+     * Update the SV2 Translator Proxy configuration
+     * @param {Object} payload.config - Partial config to merge
+     */
+    updateSv2TranslatorConfig: builder.mutation({
+      query: (payload) => ({
+        url: 'tproxy/config',
+        method: 'PUT',
+        body: payload,
+      }),
+      invalidatesTags: ['Sv2Translator'],
+      extraOptions: {
+        maxRetries: 0,
+      },
+    }),
+
+    /**
+     * Start the SV2 Translator Proxy container
+     * @param {Object} [payload.config] - Optional one-shot config override
+     */
+    startSv2Translator: builder.mutation({
+      query: (payload = {}) => ({
+        url: 'tproxy/start',
+        method: 'POST',
+        body: payload,
+      }),
+      invalidatesTags: ['Sv2Translator'],
+      extraOptions: {
+        maxRetries: 0,
+      },
+    }),
+
+    /**
+     * Stop the SV2 Translator Proxy container
+     */
+    stopSv2Translator: builder.mutation({
+      query: () => ({
+        url: 'tproxy/stop',
+        method: 'POST',
+      }),
+      invalidatesTags: ['Sv2Translator'],
+      extraOptions: {
+        maxRetries: 0,
+      },
+    }),
+
+    /**
+     * Get SV2 Translator Proxy container logs
+     * @param {Object} [payload]
+     * @param {number} [payload.tail] - Number of log lines to return
+     * @param {number} [payload.since] - Unix timestamp to get logs since
+     */
+    getSv2TranslatorLogs: builder.query({
+      query: (payload = {}) => `tproxy/logs?${qs.stringify(payload)}`,
+      extraOptions: {
+        maxRetries: 1,
+      },
+    }),
   }),
 })
 
@@ -1100,4 +1188,13 @@ export const {
   useGetFeaturesQuery,
   useGetReportsQuery,
   useLazyGetReportsQuery,
+  // SV2 Translator Proxy hooks
+  useGetSv2TranslatorStatusQuery,
+  useLazyGetSv2TranslatorStatusQuery,
+  useGetSv2TranslatorConfigQuery,
+  useUpdateSv2TranslatorConfigMutation,
+  useStartSv2TranslatorMutation,
+  useStopSv2TranslatorMutation,
+  useGetSv2TranslatorLogsQuery,
+  useLazyGetSv2TranslatorLogsQuery,
 } = api
